@@ -1,8 +1,7 @@
 package com.example.etude.statemachine
 
-class Account {
+class Account(private val secure: Boolean = true) {
     private var balance = 0
-    private val secure: Boolean = true
     private val transfers: MutableMap<String, Transfer.TransferDiagram> = mutableMapOf()
 
     fun confirmOutgoing(transferId: String) {
@@ -47,8 +46,12 @@ class Account {
     }
 
     companion object {
-        fun aNew(): Account {
-            return Account()
+        fun secure(): Account {
+            return Account(true)
+        }
+
+        fun notSecure(): Account {
+            return Account(false)
         }
     }
 

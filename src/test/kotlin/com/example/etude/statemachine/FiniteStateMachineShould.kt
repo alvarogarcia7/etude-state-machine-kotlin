@@ -16,13 +16,12 @@ class FiniteStateMachineShould {
     @Test
     fun `both secure`() {
         val transactionStateMachine = Transfer.aNew()
-        val from = Account.aNew()
-        val to = Account.aNew()
+        val from = Account.secure()
+        val to = Account.secure()
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
         sameBalance(from, to)
-
         from.userConfirmOutgoing("1234")
         sameBalance(from, to)
         to.userConfirmIncoming("2345")
