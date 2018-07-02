@@ -25,19 +25,18 @@ class Account(private val secure: Boolean = true) {
     }
 
     fun requestIncomingPayload(): Transfer.TransferDiagram.TransferPayload {
-        val request = if (this.secure) {
+        return if (secure) {
             Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("1234")
         } else {
             Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("1234")
         }
-        return request
     }
 
     fun requestOutgoingPayload(): Transfer.TransferDiagram.TransferPayload {
-        if (this.secure) {
-            return Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("2345")
+        return if (this.secure) {
+            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("2345")
         } else {
-            return Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("2345")
+            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("2345")
         }
     }
 
