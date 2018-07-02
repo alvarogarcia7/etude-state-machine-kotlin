@@ -1,6 +1,7 @@
 package com.example.etude.statemachine
 
-class Account(private val secure: Boolean = true) {
+class Account(private val incomingSecure: Boolean = true,
+              private val outgoingSecure: Boolean = true) {
     private var balance = 0
     private val transfers: MutableMap<String, Transfer.TransferDiagram> = mutableMapOf()
 
@@ -25,7 +26,7 @@ class Account(private val secure: Boolean = true) {
     }
 
     fun requestIncomingPayload(): Transfer.TransferDiagram.TransferPayload {
-        return if (secure) {
+        return if (incomingSecure) {
             Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("1234")
         } else {
             Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("1234")
@@ -33,7 +34,7 @@ class Account(private val secure: Boolean = true) {
     }
 
     fun requestOutgoingPayload(): Transfer.TransferDiagram.TransferPayload {
-        return if (this.secure) {
+        return if (outgoingSecure) {
             Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("2345")
         } else {
             Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("2345")
@@ -46,11 +47,11 @@ class Account(private val secure: Boolean = true) {
 
     companion object {
         fun secure(): Account {
-            return Account(true)
+            return Account(true, true)
         }
 
         fun notSecure(): Account {
-            return Account(false)
+            return Account(false, false)
         }
     }
 
