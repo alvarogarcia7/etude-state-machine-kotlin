@@ -30,7 +30,7 @@ class Transfer {
         override val payload: TransferDiagram
             get() = this
 
-        data class Initial(val request: TransferRequest, val payload2: TransferPayload) : TransferDiagram() {
+        data class Initial(val request: TransferRequest, private val payload2: TransferPayload) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
                 val payload21 = request.to.requestIncomingPayload()
                 val xTransferRequest = XTransferRequest(payload21.transferId, request)
@@ -46,7 +46,7 @@ class Transfer {
 
         }
 
-        data class Temporary(val diagram: TransferDiagram, val payload2: TransferPayload, val request: XTransferRequest) : TransferDiagram() {
+        data class Temporary(val diagram: TransferDiagram, private val payload2: TransferPayload, val request: XTransferRequest) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
                 val outgoingTransferId = request.TransferRequest.to.requestOutgoingPayload()
                 val request1 = XXTransferRequest(outgoingTransferId.transferId, request)
