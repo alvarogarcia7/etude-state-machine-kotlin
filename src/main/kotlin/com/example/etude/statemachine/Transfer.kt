@@ -60,6 +60,7 @@ class Transfer {
                         val request1 = XXTransferRequest(outgoingTransferId.transferId, request)
                         val diagram = Final(this, payload2, request1)
                         request.TransferRequest.to.register(outgoingTransferId.transferId, diagram)
+                        diagram.transition()
                         return diagram
                     }
                     is TransferPayload.SecureTransferPayload -> {
