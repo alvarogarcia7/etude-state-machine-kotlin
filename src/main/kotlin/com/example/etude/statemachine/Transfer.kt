@@ -32,22 +32,16 @@ class Transfer {
 
         data class Initial(val request: TransferRequest, val payload2: TransferPayload) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
+                val payload21 = request.to.requestIncomingPayload()
+                val xTransferRequest = XTransferRequest(payload21.transferId, request)
+                val diagram = Temporary(this, payload21, xTransferRequest)
+                request.from.register(payload21.transferId, diagram)
                 when (payload2) {
                     is TransferPayload.NotSecureTransferPayload -> {
-                        val payload21 = request.to.requestIncomingPayload()
-                        val xTransferRequest = XTransferRequest(payload21.transferId, request)
-                        val diagram = Temporary(this, payload21, xTransferRequest)
-                        request.from.register(payload21.transferId, diagram)
-                        return diagram
-                    }
-                    is TransferPayload.SecureTransferPayload -> {
-                        val payload21 = request.to.requestIncomingPayload()
-                        val xTransferRequest = XTransferRequest(payload21.transferId, request)
-                        val diagram = Temporary(this, payload21, xTransferRequest)
-                        request.from.register(payload21.transferId, diagram)
-                        return diagram
+                        diagram.transition()
                     }
                 }
+                return diagram
             }
 
         }
