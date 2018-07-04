@@ -1,5 +1,7 @@
 package com.example.etude.statemachine
 
+import java.util.*
+
 class Account(private val incomingSecure: Boolean = true,
               private val outgoingSecure: Boolean = true) {
     private var balance = 0
@@ -53,19 +55,20 @@ class Account(private val incomingSecure: Boolean = true,
 
     fun requestIncomingPayload(): Transfer.TransferDiagram.TransferPayload {
         return if (incomingSecure) {
-            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("1234")
+            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next())
         } else {
-            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("1234")
+            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next())
         }
     }
 
     fun requestOutgoingPayload(): Transfer.TransferDiagram.TransferPayload {
         return if (outgoingSecure) {
-            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload("2345")
+            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next())
         } else {
-            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload("2345")
+            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next())
         }
     }
+
 
     fun register(transferId: String, diagram: Transfer.TransferDiagram) {
         transfers[transferId] = diagram
@@ -81,4 +84,21 @@ class Account(private val incomingSecure: Boolean = true,
         }
     }
 
+    private var transferIdGenerator: TransferIdGenerator = RandomTransferIdGenerator()
+
+    fun setTransferId(generator: TransferIdGenerator) {
+        transferIdGenerator = generator
+    }
+
+}
+
+interface TransferIdGenerator {
+    fun next(): String
+
+}
+
+class RandomTransferIdGenerator : TransferIdGenerator {
+    override fun next(): String {
+        return UUID.randomUUID().toString()
+    }
 }

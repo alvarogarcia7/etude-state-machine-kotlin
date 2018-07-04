@@ -1,5 +1,7 @@
 package com.example.etude.statemachine
 
+import com.nhaarman.mockito_kotlin.doReturn
+import com.nhaarman.mockito_kotlin.mock
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.Before
 import org.junit.Test
@@ -16,17 +18,30 @@ class FiniteStateMachineShould {
     @Test
     fun `both secure`() {
         val transactionStateMachine = Transfer.aNew()
+        val transferId = "1234"
         val from = Account.secure()
+        readingTransferId(from, transferId)
         val to = Account.secure()
+        readingTransferId(to, transferId)
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
         sameBalance(from, to)
-        from.userConfirmOutgoing("1234")
+        from.userConfirmOutgoing(transferId)
         sameBalance(from, to)
-        to.userConfirmIncoming("2345")
+        to.userConfirmIncoming(transferId)
 
         differentBalance(from, to)
+    }
+
+    private fun readingTransferId(account: Account, transferId: String) {
+        account.setTransferId(transferIdGenerator(transferId))
+    }
+
+    private fun transferIdGenerator(transferId: String): TransferIdGenerator {
+        return mock {
+            on { next() }.doReturn(transferId)
+        }
     }
 
 
@@ -44,9 +59,13 @@ class FiniteStateMachineShould {
 
     @Test
     fun `secure to a not-secure account`() {
-        val transactionStateMachine = Transfer.aNew()
         val from = Account.secure()
+        readingTransferId(from, "1234")
+        val transactionStateMachine = Transfer.aNew()
         val to = Account.notSecure()
+        to.setTransferId(mock {
+            on { next() }.doReturn("1234")
+        })
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
@@ -58,9 +77,10 @@ class FiniteStateMachineShould {
 
     @Test
     fun `not-secure to a secure account`() {
+        val to = Account.secure()
+        readingTransferId(to, "2345")
         val transactionStateMachine = Transfer.aNew()
         val from = Account.notSecure()
-        val to = Account.secure()
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
