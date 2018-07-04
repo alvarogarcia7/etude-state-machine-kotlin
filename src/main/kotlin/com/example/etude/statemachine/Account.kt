@@ -6,11 +6,37 @@ class Account(private val incomingSecure: Boolean = true,
     private val transfers: MutableMap<String, Transfer.TransferDiagram> = mutableMapOf()
 
     fun confirmOutgoing(transferId: String) {
-        this.balance -= 1000
+        this.balance -= when (transfers[transferId]?.payload) {
+            is Transfer.TransferDiagram.Final -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Final).request.XTransferRequest.TransferRequest.request.amount
+            }
+            is Transfer.TransferDiagram.Initial -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Initial).request.request.amount
+            }
+            is Transfer.TransferDiagram.Temporary -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Temporary).request.TransferRequest.request.amount
+            }
+            else -> {
+                0
+            }
+        }
     }
 
     fun confirmIncoming(transferId: String) {
-        this.balance += 1000
+        this.balance += when (transfers[transferId]?.payload) {
+            is Transfer.TransferDiagram.Final -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Final).request.XTransferRequest.TransferRequest.request.amount
+            }
+            is Transfer.TransferDiagram.Initial -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Initial).request.request.amount
+            }
+            is Transfer.TransferDiagram.Temporary -> {
+                (transfers[transferId]?.payload as Transfer.TransferDiagram.Temporary).request.TransferRequest.request.amount
+            }
+            else -> {
+                0
+            }
+        }
     }
 
     fun userConfirmOutgoing(transferId: String) {

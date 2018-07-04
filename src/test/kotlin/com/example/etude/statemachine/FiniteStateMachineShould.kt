@@ -29,6 +29,19 @@ class FiniteStateMachineShould {
         differentBalance(from, to)
     }
 
+
+    @Test
+    fun `transfer different amounts`() {
+        val transactionStateMachine = Transfer.aNew()
+        val from = Account.notSecure()
+        val to = Account.notSecure()
+
+        transactionStateMachine.transfer(900, "rent", from, to)
+
+        assertThat(to.balance()).isEqualTo(-900)
+        assertThat(from.balance()).isEqualTo(900)
+    }
+
     @Test
     fun `secure to a not-secure account`() {
         val transactionStateMachine = Transfer.aNew()
