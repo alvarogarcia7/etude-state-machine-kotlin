@@ -9,7 +9,7 @@ class Transfer {
     }
 
     private fun perform(transferRequest: TransferRequest) {
-        TransferDiagram.Initial(transferRequest, transferRequest.from.requestOutgoingPayload()).transition()
+        TransferDiagram.Initial(transferRequest, transferRequest.from.requestOutgoingPayload(transferRequest)).transition()
     }
 
     companion object {
@@ -18,7 +18,7 @@ class Transfer {
         }
     }
 
-    data class TransferRequest(val from: Account, val to: Account, val request: Request)
+    data class TransferRequest(val from: OutgoingTransfer, val to: IncomingTransfer, val request: Request)
 
     data class XTransferRequest(val incomingTransferId: String, val TransferRequest: TransferRequest)
     data class XXTransferRequest(val outgoingTransferId: String, val XTransferRequest: XTransferRequest)
@@ -32,7 +32,7 @@ class Transfer {
 
         data class Initial(val request: TransferRequest, private val payload2: TransferPayload) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
-                val payload21 = request.to.requestIncomingPayload()
+                val payload21 = request.to.requestIncomingPayload(request)
                 val xTransferRequest = XTransferRequest(payload21.transferId, request)
                 val diagram = Temporary(this, payload21, xTransferRequest)
                 request.from.register(payload21.transferId, diagram)
@@ -48,7 +48,7 @@ class Transfer {
 
         data class Temporary(val diagram: TransferDiagram, private val payload2: TransferPayload, val request: XTransferRequest) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
-                val outgoingTransferId = request.TransferRequest.to.requestOutgoingPayload()
+                val outgoingTransferId = request.TransferRequest.to.requestIncomingPayload(request.TransferRequest)
                 val request1 = XXTransferRequest(outgoingTransferId.transferId, request)
                 val diagram = Final(this, payload2, request1)
                 request.TransferRequest.to.register(outgoingTransferId.transferId, diagram)
@@ -63,17 +63,18 @@ class Transfer {
 
         data class Final(val diagram: TransferDiagram, val payload2: TransferPayload, val request: XXTransferRequest) : TransferDiagram() {
             override fun transition(): State<TransferDiagram> {
-                request.XTransferRequest.TransferRequest.from.confirmIncoming(request.XTransferRequest.incomingTransferId)
-                request.XTransferRequest.TransferRequest.to.confirmOutgoing(request.outgoingTransferId)
+                request.XTransferRequest.TransferRequest.from.confirmOutgoing(request.XTransferRequest.incomingTransferId)
+                request.XTransferRequest.TransferRequest.to.confirmIncoming(request.outgoingTransferId)
                 return FinalState(this)
             }
         }
 
         sealed class TransferPayload {
             abstract val transferId: String
+            abstract val request: TransferRequest
 
-            data class SecureTransferPayload(override val transferId: String) : TransferPayload()
-            data class NotSecureTransferPayload(override val transferId: String) : TransferPayload()
+            data class SecureTransferPayload(override val transferId: String, override val request: TransferRequest) : TransferPayload()
+            data class NotSecureTransferPayload(override val transferId: String, override val request: TransferRequest) : TransferPayload()
         }
 
 

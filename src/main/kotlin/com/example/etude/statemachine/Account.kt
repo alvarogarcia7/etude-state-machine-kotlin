@@ -3,11 +3,11 @@ package com.example.etude.statemachine
 import java.util.*
 
 class Account(private val incomingSecure: Boolean = true,
-              private val outgoingSecure: Boolean = true) {
+              private val outgoingSecure: Boolean = true) : OutgoingTransfer, IncomingTransfer {
     private var balance = 0
     private val transfers: MutableMap<String, Transfer.TransferDiagram> = mutableMapOf()
 
-    fun confirmOutgoing(transferId: String) {
+    override fun confirmOutgoing(transferId: String) {
         this.balance -= when (transfers[transferId]?.payload) {
             is Transfer.TransferDiagram.Final -> {
                 (transfers[transferId]?.payload as Transfer.TransferDiagram.Final).request.XTransferRequest.TransferRequest.request.amount
@@ -24,7 +24,7 @@ class Account(private val incomingSecure: Boolean = true,
         }
     }
 
-    fun confirmIncoming(transferId: String) {
+    override fun confirmIncoming(transferId: String) {
         this.balance += when (transfers[transferId]?.payload) {
             is Transfer.TransferDiagram.Final -> {
                 (transfers[transferId]?.payload as Transfer.TransferDiagram.Final).request.XTransferRequest.TransferRequest.request.amount
@@ -41,11 +41,11 @@ class Account(private val incomingSecure: Boolean = true,
         }
     }
 
-    fun userConfirmOutgoing(transferId: String) {
+    override fun userConfirmOutgoing(transferId: String) {
         transfers[transferId] = transfers[transferId]?.transition()!!.payload
     }
 
-    fun userConfirmIncoming(transferId: String) {
+    override fun userConfirmIncoming(transferId: String) {
         transfers[transferId] = transfers[transferId]?.transition()!!.payload
     }
 
@@ -53,24 +53,24 @@ class Account(private val incomingSecure: Boolean = true,
         return balance
     }
 
-    fun requestIncomingPayload(): Transfer.TransferDiagram.TransferPayload {
+    override fun requestIncomingPayload(request: Transfer.TransferRequest): Transfer.TransferDiagram.TransferPayload {
         return if (incomingSecure) {
-            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next())
+            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next(), request)
         } else {
-            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next())
+            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next(), request)
         }
     }
 
-    fun requestOutgoingPayload(): Transfer.TransferDiagram.TransferPayload {
+    override fun requestOutgoingPayload(request: Transfer.TransferRequest): Transfer.TransferDiagram.TransferPayload {
         return if (outgoingSecure) {
-            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next())
+            Transfer.TransferDiagram.TransferPayload.SecureTransferPayload(transferIdGenerator.next(), request)
         } else {
-            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next())
+            Transfer.TransferDiagram.TransferPayload.NotSecureTransferPayload(transferIdGenerator.next(), request)
         }
     }
 
 
-    fun register(transferId: String, diagram: Transfer.TransferDiagram) {
+    override fun register(transferId: String, diagram: Transfer.TransferDiagram) {
         transfers[transferId] = diagram
     }
 
@@ -92,9 +92,22 @@ class Account(private val incomingSecure: Boolean = true,
 
 }
 
+interface IncomingTransfer {
+    fun confirmIncoming(transferId: String)
+    fun userConfirmIncoming(transferId: String)
+    fun requestIncomingPayload(request: Transfer.TransferRequest): Transfer.TransferDiagram.TransferPayload
+    fun register(transferId: String, diagram: Transfer.TransferDiagram)
+}
+
+interface OutgoingTransfer {
+    fun confirmOutgoing(transferId: String)
+    fun userConfirmOutgoing(transferId: String)
+    fun requestOutgoingPayload(request: Transfer.TransferRequest): Transfer.TransferDiagram.TransferPayload
+    fun register(transferId: String, diagram: Transfer.TransferDiagram)
+}
+
 interface TransferIdGenerator {
     fun next(): String
-
 }
 
 class RandomTransferIdGenerator : TransferIdGenerator {

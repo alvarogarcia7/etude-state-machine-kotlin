@@ -53,19 +53,16 @@ class FiniteStateMachineShould {
 
         transactionStateMachine.transfer(900, "rent", from, to)
 
-        assertThat(to.balance()).isEqualTo(-900)
-        assertThat(from.balance()).isEqualTo(900)
+        assertThat(to.balance()).isEqualTo(900)
+        assertThat(from.balance()).isEqualTo(-900)
     }
 
     @Test
     fun `secure to a not-secure account`() {
         val from = Account.secure()
-        readingTransferId(from, "1234")
         val transactionStateMachine = Transfer.aNew()
         val to = Account.notSecure()
-        to.setTransferId(mock {
-            on { next() }.doReturn("1234")
-        })
+        readingTransferId(to, "1234")
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
@@ -92,7 +89,9 @@ class FiniteStateMachineShould {
 
     private fun differentBalance(from: Account, to: Account) {
         assertThat(from.balance()).isNotEqualTo(balances["from"])
+        assertThat(from.balance()).isLessThan(balances["from"])
         assertThat(to.balance()).isNotEqualTo(balances["to"])
+        assertThat(to.balance()).isGreaterThan(balances["to"])
     }
 
     private fun sameBalance(from: Account, to: Account) {
