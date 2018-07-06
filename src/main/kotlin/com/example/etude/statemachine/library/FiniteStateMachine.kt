@@ -15,8 +15,14 @@ interface State2<T> {
     fun transition(): State2<T>
 }
 
+open class FinalState2<T> : State2<T> {
+    override fun transition(): State2<T> {
+        return this
+    }
+}
 class FinalState<T>(override val payload: T) : State<T> {
     override fun transition(): State<T> {
         return this
     }
+
 }
