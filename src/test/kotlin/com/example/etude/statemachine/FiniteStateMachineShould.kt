@@ -18,18 +18,17 @@ class FiniteStateMachineShould {
     @Test
     fun `both secure`() {
         val transactionStateMachine = Transfer.aNew()
-        val transferId = "1234"
         val from = Account.secure()
-        readingTransferId(from, transferId)
+        readingTransferId(from, "1234")
         val to = Account.secure()
-        readingTransferId(to, transferId)
+        readingTransferId(to, "2345")
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
         sameBalance(from, to)
-        from.userConfirmOutgoing(transferId)
+        from.userConfirmOutgoing("1234")
         sameBalance(from, to)
-        to.userConfirmIncoming(transferId)
+        to.userConfirmIncoming("2345")
 
         differentBalance(from, to)
     }
@@ -60,14 +59,26 @@ class FiniteStateMachineShould {
     @Test
     fun `secure to a not-secure account`() {
         val from = Account.secure()
+        readingTransferId(from, "1234")
         val transactionStateMachine = Transfer.aNew()
         val to = Account.notSecure()
-        readingTransferId(to, "1234")
         createBalance(from, to)
 
         transactionStateMachine.transfer(1000, "rent", from, to)
         sameBalance(from, to)
         from.userConfirmOutgoing("1234")
+
+        differentBalance(from, to)
+    }
+
+    @Test
+    fun `not-secure to a not-secure account`() {
+        val from = Account.notSecure()
+        val to = Account.notSecure()
+        val transactionStateMachine = Transfer.aNew()
+        createBalance(from, to)
+
+        transactionStateMachine.transfer(1000, "rent", from, to)
 
         differentBalance(from, to)
     }
