@@ -56,21 +56,18 @@ class Transfer {
                 val to = transferRequest.TransferRequest.to
                 val payload = to.requestIncomingPayload(transferRequest.TransferRequest)
                 val transferRequest1 = CompleteTransferRequest(payload.transferId, transferRequest)
-                val newState = when (payload) {
+                return when (payload) {
                     is TransferPayload.SecureTransferPayload -> {
-                        WaitingForIncomingConfirmation(transferRequest1)
+                        val newState = WaitingForIncomingConfirmation(transferRequest1)
+                        to.register(payload, newState)
+                        newState
                     }
                     is TransferPayload.NotSecureTransferPayload -> {
-                        PerformingActions(transferRequest1)
-                    }
-                }
-                to.register(payload, newState)
-                when (newState) {
-                    is PerformingActions -> {
+                        val newState = PerformingActions(transferRequest1)
+                        to.register(payload, newState)
                         newState.transition()
                     }
                 }
-                return newState
             }
         }
 
