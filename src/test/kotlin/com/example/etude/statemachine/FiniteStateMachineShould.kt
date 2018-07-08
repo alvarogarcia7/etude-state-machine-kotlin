@@ -33,17 +33,6 @@ class FiniteStateMachineShould {
         differentBalance(from, to)
     }
 
-    private fun readingTransferId(account: Account, transferId: String) {
-        account.setTransferId(transferIdGenerator(transferId))
-    }
-
-    private fun transferIdGenerator(transferId: String): TransferIdGenerator {
-        return mock {
-            on { next() }.doReturn(transferId)
-        }
-    }
-
-
     @Test
     fun `transfer different amounts`() {
         val transactionStateMachine = Transfer.aNew()
@@ -71,6 +60,7 @@ class FiniteStateMachineShould {
         differentBalance(from, to)
     }
 
+
     @Test
     fun `not-secure to a not-secure account`() {
         val from = Account.notSecure()
@@ -96,6 +86,16 @@ class FiniteStateMachineShould {
         to.userConfirmIncoming("2345")
 
         differentBalance(from, to)
+    }
+
+    private fun readingTransferId(account: Account, transferId: String) {
+        account.setTransferId(transferIdGenerator(transferId))
+    }
+
+    private fun transferIdGenerator(transferId: String): TransferIdGenerator {
+        return mock {
+            on { next() }.doReturn(transferId)
+        }
     }
 
     private fun differentBalance(from: Account, to: Account) {
