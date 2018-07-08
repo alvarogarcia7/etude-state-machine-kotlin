@@ -29,11 +29,11 @@ class Main(var selectedAccount: Account) {
     fun perform() {
         while (true) {
             printMenu()
-            val quit = readOption()
-            if (quit.isEmpty()) {
-                break
+            val chosenOption = readOption()
+            if (chosenOption.isDefined()) {
+                chosenOption.map { performAction(it) }
             } else {
-                quit.map { performAction(it) }
+                break
             }
         }
     }
