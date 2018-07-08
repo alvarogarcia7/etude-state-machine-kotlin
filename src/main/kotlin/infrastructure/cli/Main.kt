@@ -17,14 +17,27 @@ fun main(args: Array<String>) {
 
 class Main(var selectedAccount: Account) {
 
-    private val menuOptions = listOf(
-            "Send a transfer",
-            "See all transfers",
-            "Confirm a transfer",
-            "See account balance",
-            "Choose account",
-            "Quit"
-    )
+    private val menuOptions = arrayOf(
+            Pair("Send a transfer", {
+                printAccounts()
+                Transfer.aNew().transfer(10, "text", this.selectedAccount, readAccount())
+            }),
+            Pair("See all transfers", {
+                printTransfers()
+            }),
+            Pair("Confirm a transfer", {
+                printTransfers()
+                val selectedTransferId = Integer.parseInt(readLine())
+                this.selectedAccount.userConfirmIncoming(this.selectedAccount.pendingTransfers()[selectedTransferId].transferPayload.transferId)
+            }),
+            Pair("See account balance", {
+                println(selectedAccount.balance())
+            }),
+            Pair("Choose account", {
+                printAccounts()
+                this.selectedAccount = readAccount()
+            }),
+            Pair("Quit", {}))
 
     fun perform() {
         while (true) {
@@ -39,32 +52,11 @@ class Main(var selectedAccount: Account) {
     }
 
     private fun performAction(action: Int) {
-        println("Will execute: " + menuOptions[action])
-        when (menuOptions[action]) {
-            "Send a transfer" -> {
-                printAccounts()
-                Transfer.aNew().transfer(10, "text", this.selectedAccount, readAccount())
-            }
-            "Confirm a transfer" -> {
-                printTransfers()
-                val selectedTransferId = Integer.parseInt(readLine())
-                this.selectedAccount.userConfirmIncoming(this.selectedAccount.pendingTransfers()[selectedTransferId].transferPayload.transferId)
-            }
-            "See account balance" -> {
-                println(selectedAccount.balance())
-            }
-            "See all transfers" -> {
-                printTransfers()
-            }
-
-            "Choose account" -> {
-                printAccounts()
-                this.selectedAccount = readAccount()
-            }
-            else -> {
+        println("Will execute: " + menuOptions[action].first)
+        if (action < menuOptions.size) {
                 println("Could not understand this option.")
-            }
         }
+        menuOptions[action].second.invoke()
     }
 
     private fun printTransfers() {
@@ -90,7 +82,7 @@ class Main(var selectedAccount: Account) {
         var numberOption = readLine()
         val parseInt = Integer.parseInt(numberOption)
         val action = menuOptions[parseInt]
-        return if ("Quit" == action) {
+        return if ("Quit" == action.first) {
             Option.empty()
         } else {
             Option(parseInt)
@@ -101,7 +93,7 @@ class Main(var selectedAccount: Account) {
         println("Menu:")
         menuOptions
                 .mapIndexed { index, s ->
-                    "($index) $s"
+                    "($index) ${s.first}"
                 }
                 .forEach(::println)
     }
