@@ -1,5 +1,6 @@
 package com.example.etude.statemachine
 
+import com.example.etude.statemachine.library.FinalState2
 import com.example.etude.statemachine.library.State2
 import java.util.*
 
@@ -7,26 +8,30 @@ class Account(private val incomingSecure: Boolean = true,
               private val outgoingSecure: Boolean = true) : OutgoingTransfer, IncomingTransfer {
     private var balance = 0
 
-    private val transfers: MutableMap<String, TransferStatus> = mutableMapOf()
+    private val pendingTransfers: MutableMap<String, TransferStatus> = mutableMapOf()
 
     override fun confirmOutgoing(transferId: String) {
-        this.balance -= transfers[transferId]!!.transferPayload.request.request.amount
+        val transferStatus = pendingTransfers[transferId]!!
+        pendingTransfers.remove(transferId)
+        this.balance -= transferStatus.transferPayload.request.request.amount
     }
 
     override fun confirmIncoming(transferId: String) {
-        this.balance += transfers[transferId]!!.transferPayload.request.request.amount
+        val transferStatus = pendingTransfers[transferId]!!
+        pendingTransfers.remove(transferId)
+        this.balance += transferStatus.transferPayload.request.request.amount
     }
 
     override fun userConfirmOutgoing(transferId: String) {
-        val transferStatus = transfers[transferId]!!
+        val transferStatus = pendingTransfers[transferId]!!
         val newStatus = transferStatus.copy(diagram = transferStatus.diagram.transition())
-        transfers[transferId] = newStatus
+        pendingTransfers[transferId] = newStatus
     }
 
     override fun userConfirmIncoming(transferId: String) {
-        val transferStatus = transfers[transferId]!!
+        val transferStatus = pendingTransfers[transferId]!!
         val newStatus = transferStatus.copy(diagram = transferStatus.diagram.transition())
-        transfers[transferId] = newStatus
+        pendingTransfers[transferId] = newStatus
     }
 
     fun balance(): Int {
@@ -50,7 +55,7 @@ class Account(private val incomingSecure: Boolean = true,
     }
 
     override fun register(transferPayload: Transfer.TransferPayload, diagram: State2<Transfer.TransferRequest>) {
-        transfers[transferPayload.transferId] = TransferStatus(transferPayload, diagram)
+        pendingTransfers[transferPayload.transferId] = TransferStatus(transferPayload, diagram)
     }
 
     companion object {
@@ -67,6 +72,18 @@ class Account(private val incomingSecure: Boolean = true,
 
     fun setTransferId(generator: TransferIdGenerator) {
         transferIdGenerator = generator
+    }
+
+    fun pendingTransfers(): List<TransferStatus> {
+        return pendingTransfers
+                .toList()
+                .map { it.second }
+                .filter { (_, transferStatus) ->
+                    when (transferStatus) {
+                        is FinalState2 -> false
+                        else -> true
+                    }
+                }
     }
 
 }

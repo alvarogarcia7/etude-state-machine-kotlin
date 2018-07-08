@@ -103,6 +103,9 @@ class FiniteStateMachineShould {
         assertThat(from.balance()).isLessThan(balances["from"])
         assertThat(to.balance()).isNotEqualTo(balances["to"])
         assertThat(to.balance()).isGreaterThan(balances["to"])
+
+        noPendingTransfers(from)
+        noPendingTransfers(to)
     }
 
     private fun sameBalance(from: Account, to: Account) {
@@ -113,7 +116,13 @@ class FiniteStateMachineShould {
 
     private fun createBalance(from: Account, to: Account) {
         balances["from"] = from.balance()
+        noPendingTransfers(from)
         balances["to"] = to.balance()
+        noPendingTransfers(to)
+    }
+
+    private fun noPendingTransfers(account: Account) {
+        assertThat(account.pendingTransfers()).isEmpty()
     }
 }
 
