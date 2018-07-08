@@ -54,7 +54,7 @@ class Main(var selectedAccount: Account) {
     private fun performAction(action: Int) {
         println("Will execute: " + menuOptions[action].first)
         if (action < menuOptions.size) {
-                println("Could not understand this option.")
+            println("Could not understand this option.")
         }
         menuOptions[action].second.invoke()
     }
